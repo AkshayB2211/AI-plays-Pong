@@ -30,8 +30,9 @@ class Ball(pygame.sprite.Sprite):
 		self.rect = self.image.get_rect()
 		self.rect.center = (x, y)
 		
-	def reset(self, x, y):
-		self.rect.center = (x, y)
+	def reset(self, x, h):
+		self.rect.center = (x, randint(self.r,h-self.r))
+		self.bounce()
 
 	def update(self):
 		self.rect.x += self.velocity[0]
@@ -48,6 +49,9 @@ class Paddle(pygame.sprite.Sprite):
 		self.w = 10
 		self.h = 100
 		self.score = 0
+		self.reward = 0
+		self.hits = 0
+		self.done = False
 
 		# Set the background color and set it to be transparent
 		self.image = pygame.Surface([self.w, self.h])
@@ -58,8 +62,18 @@ class Paddle(pygame.sprite.Sprite):
 		self.rect = self.image.get_rect()
 		self.rect.center = (x, y)
 	
+	def collided(self, other):
+		self.done = True
+		self.reward += 10
+		self.hits += 1
+		other.bounce()
+		other.rect.x = self.rect.x + self.w
+	
 	def reset(self, x, y):
 		self.score = 0
+		self.reward = 0
+		self.hits = 0
+		self.done = False
 		self.rect.center = (x, y)
 
 	def move(self, y):
