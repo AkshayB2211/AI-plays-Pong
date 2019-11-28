@@ -31,7 +31,6 @@ class Ball(pygame.sprite.Sprite):
 		self.rect.center = (x, y)
 		
 	def reset(self, x, y):
-		self.score = 0
 		self.rect.center = (x, y)
 
 	def update(self):
@@ -60,6 +59,7 @@ class Paddle(pygame.sprite.Sprite):
 		self.rect.center = (x, y)
 	
 	def reset(self, x, y):
+		self.score = 0
 		self.rect.center = (x, y)
 
 	def move(self, y):
