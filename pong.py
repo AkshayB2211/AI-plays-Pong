@@ -28,8 +28,11 @@ class Ball(pygame.sprite.Sprite):
 
 		self.velocity = [randint(4,8),randint(-8,8)]
 		self.rect = self.image.get_rect()
-		self.rect.x = x
-		self.rect.y = y
+		self.rect.center = (x, y)
+		
+	def reset(self, x, y):
+		self.score = 0
+		self.rect.center = (x, y)
 
 	def update(self):
 		self.rect.x += self.velocity[0]
@@ -45,6 +48,7 @@ class Paddle(pygame.sprite.Sprite):
 		
 		self.w = 10
 		self.h = 100
+		self.score = 0
 
 		# Set the background color and set it to be transparent
 		self.image = pygame.Surface([self.w, self.h])
@@ -53,8 +57,10 @@ class Paddle(pygame.sprite.Sprite):
 
 		pygame.draw.rect(self.image, color, [0, 0, self.w, self.h])
 		self.rect = self.image.get_rect()
-		self.rect.x = x
-		self.rect.y = y
+		self.rect.center = (x, y)
+	
+	def reset(self, x, y):
+		self.rect.center = (x, y)
 
 	def move(self, y):
 		self.rect.y += y
@@ -74,8 +80,8 @@ def main():
 	clock = pygame.time.Clock()
 
 	xmargin = 20
-	paddleA = Paddle(WHITE, xmargin, HEIGHT//2-50)
-	paddleB = Paddle(WHITE, WIDTH-xmargin-10, HEIGHT//2-50)
+	paddleA = Paddle(WHITE, xmargin, HEIGHT//2)
+	paddleB = Paddle(WHITE, WIDTH-xmargin, HEIGHT//2)
 	ball = Ball(WHITE, WIDTH//2, HEIGHT//2)
 	
 	# list of all the sprites in the game.
@@ -84,9 +90,6 @@ def main():
 	all_sprites.add(paddleA)
 	all_sprites.add(paddleB)
 	all_sprites.add(ball)
-	
-	scoreA = 0
-	scoreB = 0
 
 	# -------- Main Program Loop -----------
 	while True:
@@ -110,10 +113,10 @@ def main():
 		
 		# Check if the ball is bouncing against any of the 4 walls:
 		if ball.rect.x > WIDTH-ball.r*2:
-			scoreA+=1
+			paddleA.score +=1
 			ball.velocity[0] = -ball.velocity[0]
 		if ball.rect.x < 0:
-			scoreB+=1
+			paddleB.score +=1
 			ball.velocity[0] = -ball.velocity[0]
 		if ball.rect.y > HEIGHT-ball.r*2:
 			ball.velocity[1] = -ball.velocity[1]
@@ -138,9 +141,9 @@ def main():
 		
 		#Display scores:
 		font = pygame.font.Font(None, 74)
-		text = font.render(str(scoreA), 1, WHITE)
+		text = font.render(str(paddleA.score), 1, WHITE)
 		SCREEN.blit(text, (250,10))
-		text = font.render(str(scoreB), 1, WHITE)
+		text = font.render(str(paddleB.score), 1, WHITE)
 		SCREEN.blit(text, (420,10))
 		
 		pygame.display.flip()
