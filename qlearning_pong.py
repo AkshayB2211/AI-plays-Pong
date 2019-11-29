@@ -51,7 +51,6 @@ def render():
 	SCREEN.blit(text, (250,10))
 	text = font.render(str(paddleB.score), 1, WHITE)
 	SCREEN.blit(text, (420,10))
-
 	pygame.display.flip()
 	clock.tick(FPS)
 
@@ -71,11 +70,11 @@ def step(action):
 	# Check if the ball is bouncing against any of the 4 walls:
 	if ball.rect.x > WIDTH-ball.r*2:
 		paddleA.score +=1
-		paddleB.reward -= 10
+		paddleB.reward -= 1
 		ball.velocity[0] = -ball.velocity[0]
 	if ball.rect.x < 0:
 		paddleB.score +=1
-		paddleA.reward -= 10
+		paddleA.reward -= 1
 		ball.velocity[0] = -ball.velocity[0]
 	if ball.rect.y > HEIGHT-ball.r*2:
 		ball.velocity[1] = -ball.velocity[1]
@@ -91,11 +90,10 @@ def step(action):
 		print('b hit')
 		
 	# If limit reached then done...
-	if paddleA.score > 20 or paddleB.score > 20:
+	lim = 10
+	if paddleA.score > lim or paddleB.score > lim:
 		paddleA.done = True
 		paddleB.done = True
-
-
 
 	# return observations... 1 for each paddle and ball(only y-axis)
 	a_observation = np.array((paddleA.rect.centery, ball.rect.centery))
@@ -114,20 +112,19 @@ DISCOUNT = 0.95
 EPISODES = 4000
 SHOW_EVERY = 500
 STATS_EVERY = 100
+PLAY = True
+#~ PLAY = False
 
 # Exploration settings
 epsilon = 1  	# not a constant, going to be decayed
 START_EPSILON_DECAYING = 1
-END_EPSILON_DECAYING = EPISODES
+END_EPSILON_DECAYING = EPISODES//2
 epsilon_decay_value = epsilon/(END_EPSILON_DECAYING - START_EPSILON_DECAYING)
 
-
 # There are 2 observation space, so table will be 2D
-
 TABLE_SIZE = [30, 30]       # this should not hard coded but yet...
 action_space = 3			# 3 actions... -1,0,1
 num_agents = 2
-
 
 
 def get_discrete_state(state):
@@ -137,9 +134,10 @@ def get_discrete_state(state):
 	# we use this tuple to look up the 3 Q values for the available actions in the q-table
 
 
-
 # Train first one then second, for given episodes....
 for i in range(num_agents):
+	if PLAY:
+		break
 	epsilon = 1			# reset epsilon and table for next agent
 	
 	# use the best q-table, if available...
@@ -158,7 +156,6 @@ for i in range(num_agents):
 		s = reset()
 		done = [False, False]
 		print(episode)
-
 		discrete_state = get_discrete_state(s[i])
 
 		while not done[i]:
@@ -170,14 +167,12 @@ for i in range(num_agents):
 				action = np.random.randint(0, action_space)
 
 			#~ print (action)
-
 			if(i == 0):
 				new_state, reward, done = step((action, 1))
 			else:
 				new_state, reward, done = step((1, action))
 				
 			episode_reward += reward[i]
-
 			new_discrete_state = get_discrete_state(new_state[i])
 
 			if(episode % SHOW_EVERY == 0):
@@ -185,7 +180,6 @@ for i in range(num_agents):
 			
 			# If simulation did not end yet after last step - update Q table
 			if not done[i]:
-
 				# Maximum possible Q value in next step (for new state)
 				max_future_q = np.max(q_table[new_discrete_state])
 
@@ -202,7 +196,7 @@ for i in range(num_agents):
 			# Simulation ended (for any reson) - if goal position is achived - update Q value to highest
 			else:
 				if ((i == 0 and paddleA.reward>=10) or (i == 1 and paddleB.reward>=10)):
-					q_table[discrete_state + (action,)] = 0
+					q_table[discrete_state + (action,)] = 100
 
 			discrete_state = new_discrete_state
 		
@@ -223,7 +217,6 @@ for i in range(num_agents):
 			aggr_ep_rewards['max'].append(max(ep_rewards[-STATS_EVERY:]))
 			aggr_ep_rewards['min'].append(min(ep_rewards[-STATS_EVERY:]))
 			#~ print(f'Episode: {episode:>5d}, average reward: {average_reward:>4.1f}, current epsilon: {epsilon:>1.2f}')
-
 			
 	plt.plot(aggr_ep_rewards['ep'], aggr_ep_rewards['avg'], label="average rewards")
 	plt.plot(aggr_ep_rewards['ep'], aggr_ep_rewards['max'], label="max rewards")
@@ -234,11 +227,23 @@ for i in range(num_agents):
 			
 			
 # After Training, time to play...
-
 try:
-	q_table = np.load("qtables/best_ones/qtable_{}_best.npy".format(i))
+	q_table_a = np.load("qtables/best_ones/qtable_0_best.npy")
+	q_table_b = np.load("qtables/best_ones/qtable_1_best.npy")
 	print('file found')
+	found = True
 except:
 	print('file not found')
+	found = False
 	
+s = reset()
+while found:
+	state_a = get_discrete_state(s[0])
+	state_b = get_discrete_state(s[1])
+	
+	action_a = np.argmax(q_table_a[state_a])
+	action_b = np.argmax(q_table_b[state_b])
+	s, _, _ = step((action_a, action_b))
+	render()
+
 
