@@ -67,7 +67,6 @@ class Paddle(pygame.sprite.Sprite):
 		self.reward += 10
 		self.hits += 1
 		other.bounce()
-		other.rect.x = self.rect.x + self.w
 	
 	def reset(self, x, y):
 		self.score = 0
@@ -140,11 +139,8 @@ def main():
 		# Detect collisions between the ball and the paddles
 		if pygame.sprite.collide_rect(ball, paddleA) and ball.velocity[0]<0 :
 			ball.bounce()
-			ball.rect.x = paddleA.rect.x + paddleA.w
 		if pygame.sprite.collide_rect(ball, paddleB) and ball.velocity[0]>0 :
 			ball.bounce()
-			ball.rect.x = paddleB.rect.x - ball.r*2
-
 
 		SCREEN.fill(GREY)
 
