@@ -1,94 +1,22 @@
 
-import pygame, sys, math
-from random import randint
+import pygame, sys
 from pygame.locals import *
-
-BLACK    = (0, 0, 0)
-GREEN    = (0, 255, 0)
-RED      = (255, 0, 0)
-WHITE    = (255, 255, 255)
-GREY     = (150, 150, 150)
+from pong_env import Paddle, Ball
 
 FPS = 30
 WIDTH = 700
 HEIGHT = 500
 
-class Ball(pygame.sprite.Sprite):
-	def __init__(self, color, x, y):
-		super().__init__()
-		
-		self.r = 6
-
-		# Set the background color and set it to be transparent
-		self.image = pygame.Surface([self.r*2, self.r*2])
-		self.image.fill(BLACK)
-		self.image.set_colorkey(BLACK)
-
-		pygame.draw.circle(self.image, color, [self.r, self.r], self.r)
-
-		self.velocity = [randint(4,8),randint(-8,8)]
-		self.rect = self.image.get_rect()
-		self.rect.center = (x, y)
-		
-	def reset(self, x, h):
-		self.rect.center = (x, randint(self.r,h-self.r))
-		self.bounce()
-
-	def update(self):
-		self.rect.x += self.velocity[0]
-		self.rect.y += self.velocity[1]
-
-	def bounce(self):
-		self.velocity[0] = -self.velocity[0]
-		self.velocity[1] = randint(-8,8)
-
-class Paddle(pygame.sprite.Sprite):
-	def __init__(self, color, x, y):
-		super().__init__()
-		
-		self.w = 10
-		self.h = 100
-		self.score = 0
-		self.reward = 0
-		self.hits = 0
-		self.done = False
-
-		# Set the background color and set it to be transparent
-		self.image = pygame.Surface([self.w, self.h])
-		self.image.fill(BLACK)
-		self.image.set_colorkey(BLACK)
-
-		pygame.draw.rect(self.image, color, [0, 0, self.w, self.h])
-		self.rect = self.image.get_rect()
-		self.rect.center = (x, y)
-	
-	def collided(self, other):
-		self.done = True
-		self.reward += 10
-		self.hits += 1
-		other.bounce()
-	
-	def reset(self, x, y):
-		self.score = 0
-		self.reward = 0
-		self.hits = 0
-		self.done = False
-		self.rect.center = (x, y)
-
-	def move(self, y):
-		self.rect.y += y
-		if self.rect.y < 0:
-			self.rect.y = 0
-		if self.rect.y > HEIGHT-self.h:
-			self.rect.y = HEIGHT-self.h
-
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+GREY = (150, 150, 150)
 
 def main():
 	global SCREEN
 	pygame.init()
 
 	SCREEN = pygame.display.set_mode((WIDTH,HEIGHT))
-	pygame.display.set_caption("AI PONG")
+	pygame.display.set_caption("PONG")
 
 	clock = pygame.time.Clock()
 
